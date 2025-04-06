@@ -88,7 +88,7 @@ export const Offices = ({ allowedActions }: PageProps) => {
         <ItemsContainer<Branch>
           auth={auth}
           header={{
-            title: "Branches",
+            title: "Offices & Branches",
             placeholder: "Search branches...",
             buttonName: "Create Branch",
           }}
