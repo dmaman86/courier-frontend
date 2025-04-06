@@ -5,7 +5,12 @@ import { PageProps, Role, ROLES, User, ValueColumn } from "@/models";
 import { serviceRequest } from "@/services";
 import { urlPaths } from "@/utilities";
 import { userAdapter } from "@/adapters";
-import { ClientDetails, ItemsContainer, UserForm } from "../components";
+import {
+  ClientDetails,
+  ItemsContainer,
+  UserForm,
+  UserSearchContent,
+} from "@/ui/components";
 
 export const Users = ({ allowedActions }: PageProps) => {
   const { auth } = useAuth();
@@ -22,12 +27,10 @@ export const Users = ({ allowedActions }: PageProps) => {
       ? userAdapter.clientAdapter(item)
       : userAdapter.userAdapter(item);
 
-    // const user = userAdapter.userFormDtoToEntity(item);
     return serviceRequest.postItem(urlPaths.user.base, user);
   };
 
   const updateUser = (id: string | number, item: any) => {
-    // const user = userAdapter.userFormDtoToEntity(item);
     const isClient = item.roles.some(
       (role: Role) => role.name === ROLES.CLIENT,
     );
@@ -45,8 +48,21 @@ export const Users = ({ allowedActions }: PageProps) => {
       `${urlPaths.user.search}?query=${query}&page=${page}&size=${size}`,
     );
 
-  const [userColumns, setUserColumns] = useState<ValueColumn[]>([
-    { key: "fullname", label: "Full Name" },
+  const searchUsersByFilters = (filters: any, page: number, size: number) => {
+    const userFilter = userAdapter.userAdvancesSearchAdapter(filters);
+    return serviceRequest.postItem(
+      `${urlPaths.user.base}/advanced-search?page=${page}&size=${size}`,
+      userFilter,
+    );
+  };
+
+  const [userColumns, setUserColumns] = useState<ValueColumn<User>[]>([
+    {
+      key: "fullname",
+      label: "Full Name",
+      sortable: true,
+      sortedValue: (user) => user.fullName.toLowerCase(),
+    },
     { key: "contactInfo", label: "Contact Info" },
     { key: "roles", label: "Roles" },
   ]);
@@ -89,6 +105,7 @@ export const Users = ({ allowedActions }: PageProps) => {
           updateItem: updateUser,
           deleteItem: deleteUser,
           searchItem: searchUser,
+          searchItemsByFilters: searchUsersByFilters,
         }}
         adapters={{
           itemAdapter: userAdapter.userAdapter,
@@ -107,6 +124,9 @@ export const Users = ({ allowedActions }: PageProps) => {
           user.roles.some((role) => role.name === ROLES.CLIENT)
         }
         expandContent={(id) => <ClientDetails id={id} />}
+        advancedSearchContent={(onChange, isOpen) => (
+          <UserSearchContent onChange={onChange} isOpen={isOpen} />
+        )}
       />
     </>
   );

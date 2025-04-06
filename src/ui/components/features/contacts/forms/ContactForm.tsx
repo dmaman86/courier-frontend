@@ -9,8 +9,8 @@ import { useAsync, useFetch } from "@/hooks";
 import { serviceRequest } from "@/services";
 import { urlPaths } from "@/utilities";
 import { resourceAdapter } from "@/adapters";
-import { Input } from "../Input";
-import { ControlledSelect } from "../ControlledSelect";
+import { Input, ControlledSelect } from "@/ui/components";
+import { ContactFields } from "../components/ContactFields";
 
 const contactSchema = yup.object({
   id: yup.mixed().nullable(),
@@ -72,7 +72,7 @@ export const ContactForm = ({ id, onSubmit, onClose }: FormProps) => {
     },
   });
 
-  const selectedOffice = watch("office");
+  // const selectedOffice = watch("office");
 
   useAsync(
     async () => {
@@ -93,7 +93,7 @@ export const ContactForm = ({ id, onSubmit, onClose }: FormProps) => {
     [id],
   );
 
-  useAsync(
+  /*useAsync(
     async () =>
       await callEndPoint(
         serviceRequest.getItem(urlPaths.office.getList),
@@ -127,7 +127,7 @@ export const ContactForm = ({ id, onSubmit, onClose }: FormProps) => {
       setBranches([]);
       setValue("branches", []);
     }
-  }, [selectedOffice?.id, setValue]);
+  }, [selectedOffice?.id, setValue]);*/
 
   const onSubmitForm = (data: any) => {
     console.log(data);
@@ -136,66 +136,15 @@ export const ContactForm = ({ id, onSubmit, onClose }: FormProps) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmitForm)}>
-      <div className="row mb-3">
-        <div className="col-12">
-          <Input
-            register={register}
-            label="Full Name"
-            name="fullName"
-            type="text"
-            errors={errors}
-            watch={watch}
-          />
-        </div>
-      </div>
-      <div className="row mb-3">
-        <div className="col-12 col-md-6">
-          <Input
-            register={register}
-            label="Phone Number"
-            name="phoneNumber"
-            type="text"
-            errors={errors}
-            watch={watch}
-          />
-        </div>
-        {offices && (
-          <div className="col-12 col-md-6">
-            <ControlledSelect<OfficeBase>
-              name="office"
-              label="Office"
-              control={control}
-              options={offices.map((office) => ({
-                value: office,
-                label: office.name,
-              }))}
-              errors={errors}
-              clearErrors={clearErrors}
-              trigger={trigger}
-            />
-          </div>
-        )}
-      </div>
-
-      {selectedOffice && branches && (
-        <div className="row mb-3">
-          <div className="col-12">
-            <ControlledSelect<BranchBase>
-              name="branches"
-              label="Branches"
-              control={control}
-              multiple
-              options={branches.map((branch) => ({
-                value: branch,
-                label: `${branch.city}\n${branch.address}`,
-              }))}
-              errors={errors}
-              clearErrors={clearErrors}
-              trigger={trigger}
-            />
-          </div>
-        </div>
-      )}
+      <ContactFields
+        register={register}
+        watch={watch}
+        control={control}
+        errors={errors}
+        trigger={trigger}
+        clearErrors={clearErrors}
+        setValue={setValue}
+      />
 
       <div className="col pt-3 text-center">
         <Stack spacing={2} direction="row" justifyContent="right">

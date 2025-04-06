@@ -2,69 +2,20 @@ import { useState } from "react";
 
 import { resourceAdapter } from "@/adapters";
 import { useAuth } from "@/hooks";
-import { Branch, OfficePage, PageProps, ROLES, ValueColumn } from "@/models";
+import { Branch, PageProps, ValueColumn } from "@/models";
 import { serviceRequest } from "@/services";
 import { urlPaths } from "@/utilities";
 import {
   BranchForm,
+  BranchSearchContent,
   ItemsContainer,
-  OfficeDetails,
-  OfficeForm,
-} from "../components";
+} from "@/ui/components";
 
 export const Offices = ({ allowedActions }: PageProps) => {
   const { auth } = useAuth();
 
   const defaultActions = { create: [], update: [], delete: [] };
   allowedActions = allowedActions || defaultActions;
-
-  const isAdmin = auth?.roles?.some((role) => role.name === ROLES.ADMIN);
-
-  const getOffices = (page: number, size: number) => {
-    return serviceRequest.getItem(
-      `${urlPaths.office.base}?page=${page}&size=${size}`,
-    );
-  };
-
-  const createOffice = (item: any) => {
-    if (!item.branches || !item.branches.length) {
-      const office = resourceAdapter.officeBaseAdapter(item);
-      return serviceRequest.postItem(urlPaths.office.createBase, office);
-    } else {
-      const office = resourceAdapter.officeAdapter(item);
-      return serviceRequest.postItem(urlPaths.office.base, office);
-    }
-  };
-
-  const updateOffice = (id: string | number, item: any) => {
-    const office = resourceAdapter.dataToOfficeEntity(item);
-    return serviceRequest.putItem(`${urlPaths.office.base}/${id}`, office);
-  };
-
-  const deleteOffice = (id: string | number) =>
-    serviceRequest.deleteItem(`${urlPaths.office.base}/${id}`);
-
-  const searchOffice = (query: string, page: number, size: number) =>
-    serviceRequest.getItem(
-      `${urlPaths.office.search}?query=${query}&page=${page}&size=${size}`,
-    );
-
-  const [officeColumns, setOfficeColumns] = useState<ValueColumn[]>([
-    { key: "name", label: "Name" },
-    { key: "countBranches", label: "Counter Branches" },
-    { key: "countContacts", label: "Counter Contacts" },
-  ]);
-
-  const mapOfficeInfo = (office: OfficePage) => [
-    { key: "name", content: `${office.name}` },
-    { key: "countBranches", content: `${office.countBranches}` },
-    { key: "countContacts", content: `${office.countContacts}` },
-  ];
-
-  const formatMessage = (office: OfficePage) => {
-    return `Are you sure you want to delete:
-                Office Name: ${office.name}`;
-  };
 
   const getBranches = (page: number, size: number) => {
     return serviceRequest.getItem(
@@ -90,16 +41,39 @@ export const Offices = ({ allowedActions }: PageProps) => {
       `${urlPaths.branch.search}?query=${query}&page=${page}&size=${size}`,
     );
 
-  const [branchColumns, setBranchColumns] = useState<ValueColumn[]>([
-    { key: "city", label: "City" },
-    { key: "address", label: "Address" },
-    { key: "officeName", label: "Office Name" },
+  const searchBranchByFilter = (filters: any, page: number, size: number) => {
+    const branchFilters = resourceAdapter.branchAdvancedAdapter(filters);
+    return serviceRequest.postItem(
+      `${urlPaths.branch.search}/advanced?page=${page}&size=${size}`,
+      branchFilters,
+    );
+  };
+
+  const [branchColumns, setBranchColumns] = useState<ValueColumn<Branch>[]>([
+    {
+      key: "officeName",
+      label: "Office Name",
+      sortable: true,
+      sortedValue: (branch) => branch.office.name.toLowerCase(),
+    },
+    {
+      key: "city",
+      label: "City",
+      sortable: true,
+      sortedValue: (branch) => branch.city.toLowerCase(),
+    },
+    {
+      key: "address",
+      label: "Address",
+      sortable: true,
+      sortedValue: (branch) => branch.address.toLowerCase(),
+    },
   ]);
 
   const mapBranchInfo = (branch: Branch) => [
+    { key: "officeName", content: `${branch.office.name}` },
     { key: "city", content: `${branch.city}` },
     { key: "address", content: `${branch.address}` },
-    { key: "officeName", content: `${branch.office.name}` },
   ];
 
   const formatBranchMessage = (branch: Branch) => {
@@ -110,41 +84,6 @@ export const Offices = ({ allowedActions }: PageProps) => {
 
   return (
     <>
-      {isAdmin && (
-        <ItemsContainer<OfficePage>
-          auth={auth}
-          header={{
-            title: "Offices",
-            placeholder: "Search offices...",
-            buttonName: "Create Office",
-          }}
-          actions={{
-            getItems: getOffices,
-            createItem: createOffice,
-            updateItem: updateOffice,
-            deleteItem: deleteOffice,
-            searchItem: searchOffice,
-          }}
-          adapters={{
-            itemAdapter: resourceAdapter.officePageAdapter,
-            listAdapter: resourceAdapter.listAdapter,
-          }}
-          list={{
-            columns: officeColumns,
-            mapItemRow: mapOfficeInfo,
-            itemForm: (id, onSubmit, onClose) => (
-              <OfficeForm id={id} onSubmit={onSubmit} onClose={onClose} />
-            ),
-          }}
-          allowedActions={allowedActions}
-          formatMessage={formatMessage}
-          rowExpandable={(office) =>
-            office.countBranches > 0 || office.countContacts > 0
-          }
-          expandContent={(id) => <OfficeDetails id={id} />}
-        />
-      )}
-
       <div style={{ marginTop: "3rem" }}>
         <ItemsContainer<Branch>
           auth={auth}
@@ -159,6 +98,7 @@ export const Offices = ({ allowedActions }: PageProps) => {
             updateItem: updateBranch,
             deleteItem: deleteBranch,
             searchItem: searchBranch,
+            searchItemsByFilters: searchBranchByFilter,
           }}
           adapters={{
             itemAdapter: resourceAdapter.branchAdapter,
@@ -173,6 +113,9 @@ export const Offices = ({ allowedActions }: PageProps) => {
           }}
           allowedActions={allowedActions}
           formatMessage={formatBranchMessage}
+          advancedSearchContent={(onChange, isOpen) => (
+            <BranchSearchContent onChange={onChange} isOpen={isOpen} />
+          )}
         />
       </div>
     </>

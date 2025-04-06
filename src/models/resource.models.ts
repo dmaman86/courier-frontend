@@ -31,3 +31,18 @@ export interface ContactBase extends BaseEntity {
 export interface Contact extends ContactBase {
   branches: BranchBase[];
 }
+
+export interface ContactSearchAdvanced {
+  fullName?: string;
+  phoneNumber?: string;
+  offices?: OfficeBase[];
+  branches?: BranchBase[];
+  cities?: string[];
+  address?: string;
+}
+
+export interface BranchSearchAdvanced {
+  address?: string;
+  cities?: string[];
+  offices?: OfficeBase[];
+}

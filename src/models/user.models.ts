@@ -33,3 +33,13 @@ export interface UserFormDto {
   office?: OfficeBase;
   branches?: BranchBase[];
 }
+
+export interface UserAdvancedSearch {
+  fullName?: string;
+  email?: string;
+  phoneNumber?: string;
+  roles?: Role[];
+  offices?: OfficeBase[];
+  branches?: BranchBase[];
+  address?: string;
+}

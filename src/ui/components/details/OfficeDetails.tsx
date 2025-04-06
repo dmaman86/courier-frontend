@@ -1,21 +1,12 @@
-import {
-  Box,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TablePagination,
-  TableRow,
-} from "@mui/material";
+import { Box, TablePagination } from "@mui/material";
 import { useEffect, useState } from "react";
 
 import { resourceAdapter } from "@/adapters";
 import { useFetch, useList } from "@/hooks";
-import { Branch, ContactBase } from "@/models";
+import { BranchBase, ContactBase } from "@/models";
 import { serviceRequest } from "@/services";
 import { urlPaths } from "@/utilities";
+import { ItemsTable } from "../itemsContainer";
 
 export const OfficeDetails = ({ id }: { id: string | number }) => {
   return (
@@ -27,14 +18,14 @@ export const OfficeDetails = ({ id }: { id: string | number }) => {
 };
 
 const BranchesSection = ({ officeId }: { officeId: string | number }) => {
-  const { items, setAllItems } = useList<Branch>([]);
+  const { items, setAllItems } = useList<BranchBase>([]);
   const [pagination, setPagination] = useState({
     page: 0,
     size: 5,
     totalItems: 0,
   });
 
-  const { callEndPoint } = useFetch();
+  const { loading, callEndPoint } = useFetch();
 
   const fetchBranches = async () => {
     const response = await callEndPoint(
@@ -60,24 +51,21 @@ const BranchesSection = ({ officeId }: { officeId: string | number }) => {
   return (
     <Box sx={{ mb: 3 }}>
       <h5>Branches</h5>
-      <TableContainer component={Paper}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>City</TableCell>
-              <TableCell>Address</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {items.map((branch) => (
-              <TableRow key={branch.id}>
-                <TableCell>{branch.city}</TableCell>
-                <TableCell>{branch.address}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {!loading && items.length > 0 && (
+        <ItemsTable<BranchBase>
+          items={items}
+          columns={[
+            { key: "city", label: "City" },
+            { key: "address", label: "Address" },
+          ]}
+          mapItemRow={(branch) => [
+            { key: "city", content: branch.city },
+            { key: "address", content: branch.address },
+          ]}
+          size="small"
+        />
+      )}
+
       <TablePagination
         rowsPerPageOptions={[5, 10]}
         component="div"
@@ -107,7 +95,7 @@ const ContactsSection = ({ officeId }: { officeId: string | number }) => {
     totalItems: 0,
   });
 
-  const { callEndPoint } = useFetch();
+  const { loading, callEndPoint } = useFetch();
 
   const fetchContacts = async () => {
     const response = await callEndPoint(
@@ -133,26 +121,23 @@ const ContactsSection = ({ officeId }: { officeId: string | number }) => {
   return (
     <Box sx={{ mb: 3 }}>
       <h5>Contacts</h5>
-      <TableContainer component={Paper}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Full Name</TableCell>
-              <TableCell>Phone Number</TableCell>
-              <TableCell>Office</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {items.map((contact) => (
-              <TableRow key={contact.id}>
-                <TableCell>{contact.fullName}</TableCell>
-                <TableCell>{contact.phoneNumber}</TableCell>
-                <TableCell>{contact.office.name}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      {!loading && items.length > 0 && (
+        <ItemsTable<ContactBase>
+          items={items}
+          columns={[
+            { key: "fullName", label: "Full Name" },
+            { key: "phoneNumber", label: "Phone Number" },
+            { key: "office", label: "Office" },
+          ]}
+          mapItemRow={(contact) => [
+            { key: "fullName", content: contact.fullName },
+            { key: "phoneNumber", content: contact.phoneNumber },
+            { key: "office", content: contact.office.name },
+          ]}
+          size="small"
+        />
+      )}
+
       <TablePagination
         rowsPerPageOptions={[5, 10]}
         component="div"

@@ -7,6 +7,8 @@ import {
   ContactBase,
   Page,
   OfficePage,
+  ContactSearchAdvanced,
+  BranchSearchAdvanced,
 } from "@/models";
 
 export const resourceAdapter = (() => {
@@ -67,6 +69,31 @@ export const resourceAdapter = (() => {
     };
   };
 
+  const branchAdvancedAdapter = (data: any): BranchSearchAdvanced => ({
+    address: data?.address.trim() || undefined,
+    offices: Array.isArray(data?.offices)
+      ? data.offices.map(officeBaseAdapter)
+      : [],
+    cities: Array.isArray(data?.cities)
+      ? data.cities.map((c: { city: string }) => c.city)
+      : [],
+  });
+
+  const contactAdvancedAdapter = (data: any): ContactSearchAdvanced => ({
+    fullName: data?.fullName.trim() || undefined,
+    phoneNumber: data?.phoneNumber.trim() || undefined,
+    offices: Array.isArray(data?.office)
+      ? data.office.map(officeBaseAdapter)
+      : [],
+    branches: Array.isArray(data?.branches)
+      ? data.branches.map(branchBaseAdapter)
+      : [],
+    cities: Array.isArray(data?.cities)
+      ? data.cities.map((c: { city: string }) => c.city)
+      : [],
+    address: data?.address.trim() || undefined,
+  });
+
   const listAdapter = <T>(
     data: any,
     adapter: (item: any) => T,
@@ -83,12 +110,14 @@ export const resourceAdapter = (() => {
   return {
     branchBaseAdapter,
     branchAdapter,
+    branchAdvancedAdapter,
     officeBaseAdapter,
     officePageAdapter,
     officeAdapter,
     dataToOfficeEntity,
     contactBaseAdapter,
     contactAdapter,
+    contactAdvancedAdapter,
     listAdapter,
   };
 })();

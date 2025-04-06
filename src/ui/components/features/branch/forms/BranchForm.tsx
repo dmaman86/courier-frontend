@@ -9,8 +9,8 @@ import { FormProps, OfficeBase } from "@/models";
 import { urlPaths } from "@/utilities";
 import { serviceRequest } from "@/services";
 import { resourceAdapter } from "@/adapters";
-import { Input } from "../Input";
-import { ControlledSelect } from "../ControlledSelect";
+import { Input, ControlledSelect } from "@/ui/components";
+import { BranchFields } from "../components/BranchFields";
 
 const validationSchema = yup.object({
   id: yup.mixed().nullable(),
@@ -18,7 +18,7 @@ const validationSchema = yup.object({
   address: yup.string().required("This field is required"),
   office: yup
     .object({
-      id: yup.mixed().nullable().required("Office is required"),
+      id: yup.mixed().nullable(),
       name: yup.string().required("Office name is required"),
     })
     .required("This field is required"),
@@ -26,7 +26,6 @@ const validationSchema = yup.object({
 
 export const BranchForm = ({ id, onSubmit, onClose }: FormProps) => {
   const { callEndPoint } = useFetch();
-  const [offices, setOffices] = useState<OfficeBase[] | null>(null);
 
   const {
     register,
@@ -37,6 +36,7 @@ export const BranchForm = ({ id, onSubmit, onClose }: FormProps) => {
     trigger,
     formState: { errors, isValid },
     watch,
+    setValue,
   } = useForm({
     resolver: yupResolver(validationSchema),
     mode: "onBlur",
@@ -64,25 +64,6 @@ export const BranchForm = ({ id, onSubmit, onClose }: FormProps) => {
     }
   }, [id, reset]);
 
-  useEffect(() => {
-    if (!offices) {
-      const fetchOffices = async () => {
-        const res = await callEndPoint(
-          serviceRequest.getItem(urlPaths.office.getList),
-          (data: any) =>
-            resourceAdapter.listAdapter(
-              data,
-              resourceAdapter.officeBaseAdapter,
-            ),
-        );
-        if (!res.error && res.data) {
-          setOffices(res.data);
-        }
-      };
-      fetchOffices();
-    }
-  }, [offices]);
-
   const onSubmitForm = (data: any) => {
     console.log(data);
     onSubmit(data);
@@ -90,46 +71,16 @@ export const BranchForm = ({ id, onSubmit, onClose }: FormProps) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmitForm)}>
-      <div className="row mb-3">
-        <div className="col-12 col-md-6">
-          <Input
-            register={register}
-            label="City"
-            name="city"
-            type="text"
-            errors={errors}
-            watch={watch}
-          />
-        </div>
-        <div className="col-12 col-md-6">
-          <Input
-            register={register}
-            label="Address"
-            name="address"
-            type="text"
-            errors={errors}
-            watch={watch}
-          />
-        </div>
-      </div>
-      {offices && offices.length > 0 && (
-        <div className="row mb-3">
-          <div className="col-12">
-            <ControlledSelect<OfficeBase>
-              name="office"
-              label="Offices"
-              control={control}
-              options={offices.map((office) => ({
-                value: office,
-                label: office.name,
-              }))}
-              errors={errors}
-              clearErrors={clearErrors}
-              trigger={trigger}
-            />
-          </div>
-        </div>
-      )}
+      <BranchFields
+        id={id}
+        register={register}
+        watch={watch}
+        control={control}
+        errors={errors}
+        trigger={trigger}
+        clearErrors={clearErrors}
+        setValue={setValue}
+      />
       <div className="col pt-3 text-center">
         <Stack spacing={2} direction="row" justifyContent="right">
           <Button

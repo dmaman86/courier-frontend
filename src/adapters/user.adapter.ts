@@ -1,4 +1,12 @@
-import { Client, Role, User, AuthState, Page, UserFormDto } from "@/models";
+import {
+  Client,
+  Role,
+  User,
+  AuthState,
+  Page,
+  UserFormDto,
+  UserAdvancedSearch,
+} from "@/models";
 import { resourceAdapter } from "./resource.adapter";
 
 export const userAdapter = (() => {
@@ -59,6 +67,22 @@ export const userAdapter = (() => {
     }),
   });
 
+  const userAdvancesSearchAdapter = (data: any): UserAdvancedSearch => ({
+    fullName: data?.fullName.trim() || undefined,
+    email: data?.email.trim() || undefined,
+    phoneNumber: data?.phoneNumber.trim() || undefined,
+    roles: Array.isArray(data?.selectedRoles)
+      ? data.selectedRoles.map(roleAdapter)
+      : [],
+    offices: Array.isArray(data?.office)
+      ? data.office.map(resourceAdapter.officeBaseAdapter)
+      : [],
+    branches: Array.isArray(data?.branches)
+      ? data.branches.map(resourceAdapter.branchBaseAdapter)
+      : [],
+    address: data?.address.trim() || undefined,
+  });
+
   const listAdapter = <T>(
     data: any,
     adapter: (item: any) => T,
@@ -83,6 +107,7 @@ export const userAdapter = (() => {
     clientAdapter,
     userFormDtoAdapter,
     userFormDtoToEntity,
+    userAdvancesSearchAdapter,
     listAdapter,
   };
 })();

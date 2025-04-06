@@ -4,7 +4,11 @@ import { ContactBase, PageProps, ValueColumn } from "@/models";
 import { serviceRequest } from "@/services";
 import { urlPaths } from "@/utilities";
 import { useState } from "react";
-import { ContactForm, ItemsContainer } from "../components";
+import {
+  ContactForm,
+  ContactSearchContent,
+  ItemsContainer,
+} from "@/ui/components";
 import { ContactDetails } from "../components/details/ContactDetails";
 
 export const Contacts = ({ allowedActions }: PageProps) => {
@@ -37,10 +41,36 @@ export const Contacts = ({ allowedActions }: PageProps) => {
       `${urlPaths.contact.search}?query=${query}&page=${page}&size=${size}`,
     );
 
-  const [contactColumns, setContactColumns] = useState<ValueColumn[]>([
-    { key: "fullname", label: "Full Name" },
-    { key: "phoneNumber", label: "Phone Number" },
-    { key: "office", label: "Office" },
+  const searchContactByFilters = (filters: any, page: number, size: number) => {
+    const contactFilter = resourceAdapter.contactAdvancedAdapter(filters);
+
+    return serviceRequest.postItem(
+      `${urlPaths.contact.search}/advanced?page=${page}&size=${size}`,
+      contactFilter,
+    );
+  };
+
+  const [contactColumns, setContactColumns] = useState<
+    ValueColumn<ContactBase>[]
+  >([
+    {
+      key: "fullname",
+      label: "Full Name",
+      sortable: true,
+      sortedValue: (contact) => contact.fullName.toLowerCase(),
+    },
+    {
+      key: "phoneNumber",
+      label: "Phone Number",
+      sortable: true,
+      sortedValue: (contact) => contact.phoneNumber.toLowerCase(),
+    },
+    {
+      key: "office",
+      label: "Office",
+      sortable: true,
+      sortedValue: (contact) => contact.office.name.toLowerCase(),
+    },
   ]);
 
   const mapContactInfo = (contact: ContactBase) => [
@@ -68,6 +98,7 @@ export const Contacts = ({ allowedActions }: PageProps) => {
           updateItem: updateContact,
           deleteItem: deleteContact,
           searchItem: searchContact,
+          searchItemsByFilters: searchContactByFilters,
         }}
         adapters={{
           itemAdapter: resourceAdapter.contactBaseAdapter,
@@ -84,6 +115,9 @@ export const Contacts = ({ allowedActions }: PageProps) => {
         formatMessage={formatMessage}
         rowExpandable={(contact) => true}
         expandContent={(id) => <ContactDetails id={id} />}
+        advancedSearchContent={(onChange, isOpen) => (
+          <ContactSearchContent onChange={onChange} isOpen={isOpen} />
+        )}
       />
     </>
   );
